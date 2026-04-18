@@ -83,8 +83,8 @@ web-build/
 # lib/
 
 # React Native Codegen
-ios/generated
-android/generated
+# ios/generated
+# android/generated
 
 # React Native Nitro Modules
 nitrogen/
