@@ -75,11 +75,19 @@ class TableContainerView(
   private var tableMarkdown = ""
   private var lastStretchLayoutWidth = -1
 
+  private val deferredStretchRunnable =
+    Runnable {
+      if (naturalColumnWidths.isNotEmpty() && width > 0) {
+        applyStretchForParentWidth(width)
+      }
+    }
+
   init {
     addView(scrollView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
   }
 
   fun applyTableNode(tableNode: MarkdownASTNode) {
+    removeCallbacks(deferredStretchRunnable)
     rows =
       tableNode.children.flatMap { section ->
         val isSectionHead = section.type == NodeType.TableHead
@@ -261,9 +269,13 @@ class TableContainerView(
   ) {
     scrollView.layout(0, 0, right - left, bottom - top)
     val viewWidth = right - left
-    if (naturalColumnWidths.isNotEmpty() && viewWidth != lastStretchLayoutWidth) {
+    // Stretching must not run synchronously inside onLayout: replacing the scroll child and
+    // calling requestLayout() here breaks HorizontalScrollView's layout pass on some devices,
+    // leaving the grid with zero-size or blank content. Defer until after this pass completes.
+    if (naturalColumnWidths.isNotEmpty() && viewWidth > 0 && viewWidth != lastStretchLayoutWidth) {
       lastStretchLayoutWidth = viewWidth
-      applyStretchForParentWidth(viewWidth)
+      removeCallbacks(deferredStretchRunnable)
+      post(deferredStretchRunnable)
     }
     scrollView.isHorizontalScrollBarEnabled = totalTableWidth > viewWidth
 
