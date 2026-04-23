@@ -222,7 +222,13 @@ export const EnrichedMarkdownText = ({
   return (
     <Fragment>
       {selectionStyle}
-      <div data-enriched-markdown-text style={wrapperStyle} dir={dir} {...rest}>
+      <div
+        data-enriched-markdown-text
+        style={wrapperStyle}
+        dir={dir}
+        onCopy={handleCopy}
+        {...rest}
+      >
         {children.map((child, index) => (
           <RenderNode
             key={`${child.type}-${index}`}
