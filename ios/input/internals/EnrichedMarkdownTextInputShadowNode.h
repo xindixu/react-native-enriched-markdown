@@ -1,7 +1,7 @@
 #pragma once
 #include "EnrichedMarkdownTextInputState.h"
-#include <ReactNativeEnrichedMarkdown/EventEmitters.h>
-#include <ReactNativeEnrichedMarkdown/Props.h>
+#include <EnrichedMarkdownTextSpec/EventEmitters.h>
+#include <EnrichedMarkdownTextSpec/Props.h>
 #include <react/renderer/components/view/ConcreteViewShadowNode.h>
 #include <react/renderer/core/LayoutConstraints.h>
 

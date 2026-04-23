@@ -23,10 +23,10 @@
 #import "StylePropsUtils.h"
 #import "TaskListTapUtils.h"
 
-#import <ReactNativeEnrichedMarkdown/EnrichedMarkdownTextComponentDescriptor.h>
-#import <ReactNativeEnrichedMarkdown/EventEmitters.h>
-#import <ReactNativeEnrichedMarkdown/Props.h>
-#import <ReactNativeEnrichedMarkdown/RCTComponentViewHelpers.h>
+#import "internals/EnrichedMarkdownTextComponentDescriptor.h"
+#import <EnrichedMarkdownTextSpec/EventEmitters.h>
+#import <EnrichedMarkdownTextSpec/Props.h>
+#import <EnrichedMarkdownTextSpec/RCTComponentViewHelpers.h>
 
 #import "RCTFabricComponentsPlugins.h"
 #import <React/RCTConversions.h>

@@ -19,10 +19,10 @@
 #import <React/RCTBackedTextInputDelegate.h>
 #endif
 
-#import <ReactNativeEnrichedMarkdown/EnrichedMarkdownTextInputComponentDescriptor.h>
-#import <ReactNativeEnrichedMarkdown/EventEmitters.h>
-#import <ReactNativeEnrichedMarkdown/Props.h>
-#import <ReactNativeEnrichedMarkdown/RCTComponentViewHelpers.h>
+#import "internals/EnrichedMarkdownTextInputComponentDescriptor.h"
+#import <EnrichedMarkdownTextSpec/EventEmitters.h>
+#import <EnrichedMarkdownTextSpec/Props.h>
+#import <EnrichedMarkdownTextSpec/RCTComponentViewHelpers.h>
 
 #import "EnrichedMarkdownTextInputShadowNode.h"
 #import "RCTFabricComponentsPlugins.h"
