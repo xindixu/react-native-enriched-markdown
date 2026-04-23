@@ -34,10 +34,10 @@
 #import <React/RCTUtils.h>
 #import <objc/runtime.h>
 
-#import <ReactNativeEnrichedMarkdown/EnrichedMarkdownComponentDescriptor.h>
-#import <ReactNativeEnrichedMarkdown/EventEmitters.h>
-#import <ReactNativeEnrichedMarkdown/Props.h>
-#import <ReactNativeEnrichedMarkdown/RCTComponentViewHelpers.h>
+#import "internals/EnrichedMarkdownComponentDescriptor.h"
+#import <EnrichedMarkdownTextSpec/EventEmitters.h>
+#import <EnrichedMarkdownTextSpec/Props.h>
+#import <EnrichedMarkdownTextSpec/RCTComponentViewHelpers.h>
 
 #import "RCTFabricComponentsPlugins.h"
 #import <React/RCTConversions.h>

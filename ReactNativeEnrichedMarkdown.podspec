@@ -31,9 +31,13 @@ Pod::Spec.new do |s|
     ios ios/attachments ios/input ios/input/internals ios/input/styles ios/internals ios/parser
     ios/renderer ios/styles ios/utils ios/views
   ].map { |p| "\"$(PODS_TARGET_SRCROOT)/#{p}\"" }.join(' ')
+  # Vendored Fabric codegen (see package.json codegenConfig.includesGeneratedCode). Resolves
+  # e.g. <EnrichedMarkdownTextSpec/EventEmitters.h> when the app does not re-run RN codegen
+  # for this library.
+  generated_codegen_path = '"$(PODS_TARGET_SRCROOT)/ios/generated/ReactCodegen"'
 
   s.pod_target_xcconfig = {
-    'HEADER_SEARCH_PATHS' => "\"$(PODS_TARGET_SRCROOT)/cpp/md4c\" \"$(PODS_TARGET_SRCROOT)/cpp/parser\" #{ios_header_paths}",
+    'HEADER_SEARCH_PATHS' => "\"$(PODS_TARGET_SRCROOT)/cpp/md4c\" \"$(PODS_TARGET_SRCROOT)/cpp/parser\" #{ios_header_paths} #{generated_codegen_path}",
     # React / SwiftUI modules use framework-style modules; our ObjC uses plain quoted includes.
     'CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES' => 'YES',
     'GCC_PREPROCESSOR_DEFINITIONS' => preprocessor_defs,
