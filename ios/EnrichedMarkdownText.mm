@@ -9,6 +9,7 @@
 #import "ENRMTailFadeInAnimator.h"
 #import "ENRMTextRenderer.h"
 #import "ENRMTextViewSetup.h"
+#import "ENRMUIKit.h"
 #import "EditMenuUtils.h"
 #import "FontScaleObserver.h"
 #import "FontUtils.h"
@@ -22,10 +23,10 @@
 #import "StylePropsUtils.h"
 #import "TaskListTapUtils.h"
 
-#import <ReactNativeEnrichedMarkdown/EnrichedMarkdownTextComponentDescriptor.h>
-#import <ReactNativeEnrichedMarkdown/EventEmitters.h>
-#import <ReactNativeEnrichedMarkdown/Props.h>
-#import <ReactNativeEnrichedMarkdown/RCTComponentViewHelpers.h>
+#import "internals/EnrichedMarkdownTextComponentDescriptor.h"
+#import <EnrichedMarkdownTextSpec/EventEmitters.h>
+#import <EnrichedMarkdownTextSpec/Props.h>
+#import <EnrichedMarkdownTextSpec/RCTComponentViewHelpers.h>
 
 #import "RCTFabricComponentsPlugins.h"
 #import <React/RCTConversions.h>
@@ -411,6 +412,16 @@ using namespace facebook::react;
     _textView.selectable = newViewProps.selectable;
   }
 
+  if (newViewProps.selectionColor != oldViewProps.selectionColor) {
+#if !TARGET_OS_OSX
+    if (isColorMeaningful(newViewProps.selectionColor)) {
+      ENRMSetSelectionColor(_textView, RCTUIColorFromSharedColor(newViewProps.selectionColor));
+    } else {
+      ENRMSetSelectionColor(_textView, nil);
+    }
+#endif
+  }
+
   if (newViewProps.allowFontScaling != oldViewProps.allowFontScaling) {
     _fontScaleObserver.allowFontScaling = newViewProps.allowFontScaling;
 
@@ -537,11 +548,28 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
     return;
   }
 
-  NSString *url = linkURLAtTapLocation(textView, recognizer);
-  if (url) {
+  NSString *linkURL = nil;
+  NSString *mentionURL = nil;
+  NSString *mentionText = nil;
+  NSString *citationURL = nil;
+  NSString *citationText = nil;
+  if (inlineElementAtTapLocation(textView, recognizer, &linkURL, &mentionURL, &mentionText, &citationURL,
+                                 &citationText)) {
     auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(_eventEmitter);
     if (eventEmitter) {
-      eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
+      if (mentionURL) {
+        eventEmitter->onMentionPress({
+            .url = std::string([mentionURL UTF8String] ?: ""),
+            .text = std::string([(mentionText ?: @"") UTF8String] ?: ""),
+        });
+      } else if (citationURL) {
+        eventEmitter->onCitationPress({
+            .url = std::string([citationURL UTF8String] ?: ""),
+            .text = std::string([(citationText ?: @"") UTF8String] ?: ""),
+        });
+      } else if (linkURL) {
+        eventEmitter->onLinkPress({.url = std::string([linkURL UTF8String])});
+      }
     }
     return;
   }

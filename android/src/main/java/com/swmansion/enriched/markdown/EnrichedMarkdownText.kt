@@ -23,11 +23,14 @@ import com.swmansion.enriched.markdown.utils.text.TailFadeInAnimator
 import com.swmansion.enriched.markdown.utils.text.interaction.CheckboxTouchHelper
 import com.swmansion.enriched.markdown.utils.text.view.LinkLongPressMovementMethod
 import com.swmansion.enriched.markdown.utils.text.view.applySelectableState
+import com.swmansion.enriched.markdown.utils.text.view.applySelectionColors
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForCheckboxTap
 import com.swmansion.enriched.markdown.utils.text.view.cancelJSTouchForLinkTap
 import com.swmansion.enriched.markdown.utils.text.view.createSelectionActionModeCallback
+import com.swmansion.enriched.markdown.utils.text.view.emitCitationPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
+import com.swmansion.enriched.markdown.utils.text.view.emitMentionPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.setupAsMarkdownTextView
 import java.util.concurrent.Executors
 
@@ -80,6 +83,9 @@ class EnrichedMarkdownText
     override var spoilerOverlayDrawer: SpoilerOverlayDrawer? = null
       private set
     var spoilerOverlay: SpoilerOverlay = SpoilerOverlay.PARTICLES
+
+    private var selectionColor: Int? = null
+    private var selectionHandleColor: Int? = null
 
     init {
       setupAsMarkdownTextView()
@@ -228,9 +234,11 @@ class EnrichedMarkdownText
 
       text = styledText
 
-      if (movementMethod !is LinkLongPressMovementMethod) {
-        movementMethod = LinkLongPressMovementMethod.createInstance()
-      }
+      val method =
+        (movementMethod as? LinkLongPressMovementMethod)
+          ?: LinkLongPressMovementMethod.createInstance().also { movementMethod = it }
+      method.onMentionTap = { url, mentionText -> emitOnMentionPress(url, mentionText) }
+      method.onCitationTap = { url, citationText -> emitOnCitationPress(url, citationText) }
 
       renderer.getCollectedImageSpans().forEach { span ->
         span.registerTextView(this)
@@ -248,6 +256,8 @@ class EnrichedMarkdownText
         fadeAnimator?.animate(tailStart, styledText.length)
         previousTextLength = styledText.length
       }
+
+      applySelectionColors(selectionColor, selectionHandleColor)
     }
 
     fun setContextMenuItems(items: List<String>) {
@@ -258,12 +268,36 @@ class EnrichedMarkdownText
       applySelectableState(selectable)
     }
 
+    fun setSelectionColor(color: Int?) {
+      selectionColor = color
+      applySelectionColors(selectionColor, selectionHandleColor)
+    }
+
+    fun setSelectionHandleColor(color: Int?) {
+      selectionHandleColor = color
+      applySelectionColors(selectionColor, selectionHandleColor)
+    }
+
     fun emitOnLinkPress(url: String) {
       emitLinkPressEvent(url)
     }
 
     fun emitOnLinkLongPress(url: String) {
       emitLinkLongPressEvent(url)
+    }
+
+    fun emitOnMentionPress(
+      url: String,
+      text: String,
+    ) {
+      emitMentionPressEvent(url, text)
+    }
+
+    fun emitOnCitationPress(
+      url: String,
+      text: String,
+    ) {
+      emitCitationPressEvent(url, text)
     }
 
     fun setOnLinkPressCallback(callback: (String) -> Unit) {

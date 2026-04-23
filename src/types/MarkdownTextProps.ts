@@ -1,9 +1,11 @@
-import type { ViewProps, ViewStyle, TextStyle } from 'react-native';
+import type { ColorValue, ViewProps, ViewStyle, TextStyle } from 'react-native';
 import type { MarkdownStyle, Md4cFlags } from './MarkdownStyle';
 import type {
   LinkPressEvent,
   LinkLongPressEvent,
   TaskListItemPressEvent,
+  MentionPressEvent,
+  CitationPressEvent,
 } from './events';
 
 /**
@@ -70,6 +72,20 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    */
   onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
   /**
+   * Callback fired when an inline mention pill is pressed.
+   * Mentions are authored as `[label](mention://<id>)` in markdown; the
+   * renderer draws them as a pill and surfaces the post-scheme URL separately.
+   * @platform ios, android, web
+   */
+  onMentionPress?: (event: MentionPressEvent) => void;
+  /**
+   * Callback fired when an inline citation is pressed.
+   * Citations are authored as `[label](citation://<url>)` in markdown; the
+   * renderer draws them as a superscript marker and surfaces the target url.
+   * @platform ios, android, web
+   */
+  onCitationPress?: (event: CitationPressEvent) => void;
+  /**
    * Controls whether the system link preview is shown on long press (iOS only).
    *
    * When `true`, long-pressing a link shows the native iOS link preview.
@@ -91,6 +107,22 @@ export interface EnrichedMarkdownTextProps extends Omit<ViewProps, 'style'> {
    * @platform ios, android, web
    */
   selectable?: boolean;
+  /**
+   * Color of the text selection highlight.
+   *
+   * On iOS, this also affects the caret and selection handle colors
+   * (they share a single tint).
+   *
+   * @platform ios, android, web
+   */
+  selectionColor?: ColorValue;
+  /**
+   * Color of the selection handles (drag anchors).
+   * No-op on API levels below 29.
+   *
+   * @platform android
+   */
+  selectionHandleColor?: ColorValue;
   /**
    * Specifies whether fonts should scale to respect Text Size accessibility settings.
    * When false, text will not scale with the user's accessibility settings.

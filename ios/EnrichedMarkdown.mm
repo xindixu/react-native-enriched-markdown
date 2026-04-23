@@ -7,6 +7,7 @@
 #import "EditMenuUtils.h"
 
 #import "ENRMFeatureFlags.h"
+#import "ENRMUIKit.h"
 
 #if ENRICHED_MARKDOWN_MATH
 #import "ENRMMathContainerView.h"
@@ -33,10 +34,10 @@
 #import <React/RCTUtils.h>
 #import <objc/runtime.h>
 
-#import <ReactNativeEnrichedMarkdown/EnrichedMarkdownComponentDescriptor.h>
-#import <ReactNativeEnrichedMarkdown/EventEmitters.h>
-#import <ReactNativeEnrichedMarkdown/Props.h>
-#import <ReactNativeEnrichedMarkdown/RCTComponentViewHelpers.h>
+#import "internals/EnrichedMarkdownComponentDescriptor.h"
+#import <EnrichedMarkdownTextSpec/EventEmitters.h>
+#import <EnrichedMarkdownTextSpec/Props.h>
+#import <EnrichedMarkdownTextSpec/RCTComponentViewHelpers.h>
 
 #import "RCTFabricComponentsPlugins.h"
 #import <React/RCTConversions.h>
@@ -90,6 +91,7 @@ using namespace facebook::react;
 #endif
 
 @interface EnrichedMarkdown () <RCTEnrichedMarkdownViewProtocol, UITextViewDelegate>
+- (void)applySelectionColor:(const EnrichedMarkdownProps &)props toTextView:(ENRMPlatformTextView *)textView;
 @end
 
 @implementation EnrichedMarkdown {
@@ -493,6 +495,9 @@ using namespace facebook::react;
   view.textView.selectable = _selectable;
   [view applyAttributedText:segment.attributedText context:segment.context];
 
+  const auto &selectionProps = *std::static_pointer_cast<EnrichedMarkdownProps const>(self->_props);
+  [self applySelectionColor:selectionProps toTextView:view.textView];
+
   ENRMTapRecognizer *tapRecognizer = [[ENRMTapRecognizer alloc] initWithTarget:self action:@selector(textTapped:)];
   [view.textView addGestureRecognizer:tapRecognizer];
 
@@ -556,6 +561,34 @@ using namespace facebook::react;
     auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
     if (eventEmitter) {
       eventEmitter->onLinkLongPress({.url = std::string([url UTF8String])});
+    }
+  };
+
+  tableView.onMentionPress = ^(NSString *url, NSString *text) {
+    EnrichedMarkdown *strongSelf = weakSelf;
+    if (!strongSelf)
+      return;
+
+    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
+    if (eventEmitter) {
+      eventEmitter->onMentionPress({
+          .url = std::string([(url ?: @"") UTF8String] ?: ""),
+          .text = std::string([(text ?: @"") UTF8String] ?: ""),
+      });
+    }
+  };
+
+  tableView.onCitationPress = ^(NSString *url, NSString *text) {
+    EnrichedMarkdown *strongSelf = weakSelf;
+    if (!strongSelf)
+      return;
+
+    auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(strongSelf->_eventEmitter);
+    if (eventEmitter) {
+      eventEmitter->onCitationPress({
+          .url = std::string([(url ?: @"") UTF8String] ?: ""),
+          .text = std::string([(text ?: @"") UTF8String] ?: ""),
+      });
     }
   };
 
@@ -655,6 +688,17 @@ using namespace facebook::react;
         ((EnrichedMarkdownInternalText *)segment).spoilerOverlay = _spoilerOverlay;
       }
     }
+  }
+
+  if (newViewProps.selectionColor != oldViewProps.selectionColor) {
+#if !TARGET_OS_OSX
+    for (RCTUIView *segment in _segmentViews) {
+      if ([segment isKindOfClass:[EnrichedMarkdownInternalText class]]) {
+        ENRMPlatformTextView *tv = ((EnrichedMarkdownInternalText *)segment).textView;
+        [self applySelectionColor:newViewProps toTextView:tv];
+      }
+    }
+#endif
   }
 
   if (markdownChanged || stylePropChanged || md4cFlagsChanged || allowTrailingMarginChanged) {
@@ -760,11 +804,28 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
     }
   }
 
-  NSString *url = linkURLAtTapLocation(textView, recognizer);
-  if (url) {
+  NSString *linkURL = nil;
+  NSString *mentionURL = nil;
+  NSString *mentionText = nil;
+  NSString *citationURL = nil;
+  NSString *citationText = nil;
+  if (inlineElementAtTapLocation(textView, recognizer, &linkURL, &mentionURL, &mentionText, &citationURL,
+                                 &citationText)) {
     auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(_eventEmitter);
     if (eventEmitter) {
-      eventEmitter->onLinkPress({.url = std::string([url UTF8String])});
+      if (mentionURL) {
+        eventEmitter->onMentionPress({
+            .url = std::string([mentionURL UTF8String] ?: ""),
+            .text = std::string([(mentionText ?: @"") UTF8String] ?: ""),
+        });
+      } else if (citationURL) {
+        eventEmitter->onCitationPress({
+            .url = std::string([citationURL UTF8String] ?: ""),
+            .text = std::string([(citationText ?: @"") UTF8String] ?: ""),
+        });
+      } else if (linkURL) {
+        eventEmitter->onLinkPress({.url = std::string([linkURL UTF8String])});
+      }
     }
     return;
   }
@@ -879,5 +940,16 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
   return [MarkdownAccessibilityElementBuilder buildRotorsFromElements:[self accessibilityElements]];
 }
 #endif
+
+- (void)applySelectionColor:(const EnrichedMarkdownProps &)props toTextView:(ENRMPlatformTextView *)textView
+{
+#if !TARGET_OS_OSX
+  if (isColorMeaningful(props.selectionColor)) {
+    ENRMSetSelectionColor(textView, RCTUIColorFromSharedColor(props.selectionColor));
+  } else {
+    ENRMSetSelectionColor(textView, nil);
+  }
+#endif
+}
 
 @end

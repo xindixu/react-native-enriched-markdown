@@ -12,9 +12,11 @@ import com.facebook.react.viewmanagers.EnrichedMarkdownManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedMarkdownManagerInterface
 import com.facebook.yoga.YogaMeasureMode
 import com.swmansion.enriched.markdown.spoiler.SpoilerOverlay
+import com.swmansion.enriched.markdown.utils.common.emitCitationPress
 import com.swmansion.enriched.markdown.utils.common.emitContextMenuItemPress
 import com.swmansion.enriched.markdown.utils.common.emitLinkLongPress
 import com.swmansion.enriched.markdown.utils.common.emitLinkPress
+import com.swmansion.enriched.markdown.utils.common.emitMentionPress
 import com.swmansion.enriched.markdown.utils.common.emitTaskListItemPress
 import com.swmansion.enriched.markdown.utils.common.markdownEventTypeConstants
 import com.swmansion.enriched.markdown.utils.common.parseContextMenuItems
@@ -54,6 +56,14 @@ class EnrichedMarkdownManager :
       emitLinkLongPress(view, url)
     }
 
+    view?.setOnMentionPressCallback { url, text ->
+      emitMentionPress(view, url, text)
+    }
+
+    view?.setOnCitationPressCallback { url, text ->
+      emitCitationPress(view, url, text)
+    }
+
     view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText ->
       val newChecked = !checked
       val updatedMarkdown = TaskListToggleUtils.toggleAtIndex(view.currentMarkdown, taskIndex, newChecked)
@@ -78,6 +88,20 @@ class EnrichedMarkdownManager :
     selectable: Boolean,
   ) {
     view?.setIsSelectable(selectable)
+  }
+
+  override fun setSelectionColor(
+    view: EnrichedMarkdown?,
+    value: Int?,
+  ) {
+    view?.setSelectionColor(value)
+  }
+
+  override fun setSelectionHandleColor(
+    view: EnrichedMarkdown?,
+    value: Int?,
+  ) {
+    view?.setSelectionHandleColor(value)
   }
 
   @ReactProp(name = "md4cFlags")

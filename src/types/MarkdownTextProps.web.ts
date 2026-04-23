@@ -1,9 +1,12 @@
+import type { ColorValue } from 'react-native';
 import type { CSSProperties, HTMLAttributes } from 'react';
 import type { MarkdownStyle, Md4cFlags } from './MarkdownStyle';
 import type {
   LinkPressEvent,
   LinkLongPressEvent,
   TaskListItemPressEvent,
+  MentionPressEvent,
+  CitationPressEvent,
 } from './events';
 
 export interface EnrichedMarkdownTextProps
@@ -57,6 +60,18 @@ export interface EnrichedMarkdownTextProps
    */
   onTaskListItemPress?: (event: TaskListItemPressEvent) => void;
   /**
+   * Callback fired when an inline mention pill is pressed.
+   * Mentions are authored as `[label](mention://<id>)` in markdown.
+   * @platform ios, android, web
+   */
+  onMentionPress?: (event: MentionPressEvent) => void;
+  /**
+   * Callback fired when an inline citation is pressed.
+   * Citations are authored as `[label](citation://<url>)` in markdown.
+   * @platform ios, android, web
+   */
+  onCitationPress?: (event: CitationPressEvent) => void;
+  /**
    * Controls text selection.
    * - iOS: Controls text selection and link previews on long press.
    * - Android: Controls text selection.
@@ -65,6 +80,11 @@ export interface EnrichedMarkdownTextProps
    * @platform ios, android, web
    */
   selectable?: boolean;
+  /**
+   * Color of the text selection highlight.
+   * @platform web
+   */
+  selectionColor?: ColorValue;
   /**
    * When false (default), removes trailing margin from the last element to
    * eliminate bottom spacing.

@@ -18,6 +18,7 @@ import com.swmansion.enriched.markdown.utils.common.FeatureFlags
 import com.swmansion.enriched.markdown.utils.common.MarkdownSegmentRenderer
 import com.swmansion.enriched.markdown.utils.common.RenderedSegment
 import com.swmansion.enriched.markdown.utils.common.splitASTIntoSegments
+import com.swmansion.enriched.markdown.utils.text.view.applySelectionColors
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkLongPressEvent
 import com.swmansion.enriched.markdown.utils.text.view.emitLinkPressEvent
 import com.swmansion.enriched.markdown.views.BlockSegmentView
@@ -54,9 +55,13 @@ class EnrichedMarkdown
     private var maxFontSizeMultiplier: Float = 0f
     private var allowTrailingMargin: Boolean = false
     private var selectable: Boolean = true
+    private var selectionColor: Int? = null
+    private var selectionHandleColor: Int? = null
 
     private var onLinkPressCallback: ((String) -> Unit)? = null
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
+    private var onMentionPressCallback: ((String, String) -> Unit)? = null
+    private var onCitationPressCallback: ((String, String) -> Unit)? = null
     private var onTaskListItemPressCallback: ((Int, Boolean, String) -> Unit)? = null
     private var contextMenuItemTexts: List<String> = emptyList()
     var onContextMenuItemPressCallback: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
@@ -128,12 +133,36 @@ class EnrichedMarkdown
       }
     }
 
+    fun setSelectionColor(color: Int?) {
+      selectionColor = color
+      applySelectionColorsToSegments()
+    }
+
+    fun setSelectionHandleColor(color: Int?) {
+      selectionHandleColor = color
+      applySelectionColorsToSegments()
+    }
+
+    private fun applySelectionColorsToSegments() {
+      segmentViews.filterIsInstance<EnrichedMarkdownInternalText>().forEach {
+        it.applySelectionColors(selectionColor, selectionHandleColor)
+      }
+    }
+
     fun setOnLinkPressCallback(callback: (String) -> Unit) {
       onLinkPressCallback = callback
     }
 
     fun setOnLinkLongPressCallback(callback: (String) -> Unit) {
       onLinkLongPressCallback = callback
+    }
+
+    fun setOnMentionPressCallback(callback: ((url: String, text: String) -> Unit)?) {
+      onMentionPressCallback = callback
+    }
+
+    fun setOnCitationPressCallback(callback: ((url: String, text: String) -> Unit)?) {
+      onCitationPressCallback = callback
     }
 
     fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?) {
@@ -224,6 +253,8 @@ class EnrichedMarkdown
           justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
         }
         lastElementMarginBottom = segment.lastElementMarginBottom
+        onMentionPressCallback = this@EnrichedMarkdown.onMentionPressCallback
+        onCitationPressCallback = this@EnrichedMarkdown.onCitationPressCallback
         applyStyledText(segment.styledText)
         segment.imageSpans.forEach { it.registerTextView(this) }
 
@@ -234,6 +265,8 @@ class EnrichedMarkdown
         if (contextMenuItemTexts.isNotEmpty()) {
           setContextMenuItems(contextMenuItemTexts, ::forwardContextMenuItemPress)
         }
+
+        applySelectionColors(selectionColor, selectionHandleColor)
       }
 
     private fun createTableView(
@@ -244,6 +277,8 @@ class EnrichedMarkdown
       maxFontSizeMultiplier = this@EnrichedMarkdown.maxFontSizeMultiplier
       onLinkPress = onLinkPressCallback
       onLinkLongPress = onLinkLongPressCallback
+      onMentionPress = onMentionPressCallback
+      onCitationPress = onCitationPressCallback
       applyTableNode(segment.node)
     }
 
