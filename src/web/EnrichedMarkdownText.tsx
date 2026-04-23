@@ -5,6 +5,7 @@ import {
   useCallback,
   type CSSProperties,
   type ClipboardEvent,
+  Fragment,
 } from 'react';
 import type { EnrichedMarkdownTextProps } from '../types/MarkdownTextProps.web';
 import { normalizeMarkdownStyle } from '../normalizeMarkdownStyle.web';
@@ -20,6 +21,7 @@ import type { ASTNode, RendererCallbacks, RenderCapabilities } from './types';
 import { indexTaskItems, markInlineImages } from './utils';
 import { loadKaTeX } from './katex';
 import type { KaTeXInstance } from './katex';
+import { normalizeColor } from '../styleUtils';
 
 export const EnrichedMarkdownText = ({
   markdown,
@@ -34,6 +36,7 @@ export const EnrichedMarkdownText = ({
   containerStyle,
   selectable = true,
   dir,
+  selectionColor,
   ...rest
 }: EnrichedMarkdownTextProps) => {
   const normalizedStyle = useMemo(
@@ -117,15 +120,27 @@ export const EnrichedMarkdownText = ({
     [lastChildStyle]
   );
 
-  const wrapperStyle = useMemo<CSSProperties>(
-    () => ({
+  const wrapperStyle = useMemo<CSSProperties>(() => {
+    const selectionColorCss = selectionColor
+      ? normalizeColor(String(selectionColor))
+      : undefined;
+
+    return {
       display: 'flex',
       flexDirection: 'column',
       ...(containerStyle as CSSProperties),
       ...(selectable ? undefined : { userSelect: 'none' }),
-    }),
-    [containerStyle, selectable]
-  );
+      ...(selectionColorCss != null
+        ? ({ ['--enrm-selection-bg']: selectionColorCss } as CSSProperties)
+        : null),
+    };
+  }, [containerStyle, selectable, selectionColor]);
+
+  const selectionStyle = selectionColor ? (
+    <style>{`[data-enriched-markdown-text] ::selection {
+    background-color: var(--enrm-selection-bg);
+    }`}</style>
+  ) : null;
 
   // The browser's default copy picks up the text content of the selected
   // DOM, which would include citation markers. Citations are reference
@@ -185,9 +200,17 @@ export const EnrichedMarkdownText = ({
 
   if (parseError) {
     return (
-      <div style={wrapperStyle} dir={dir} {...rest}>
-        <pre style={parseErrorFallbackStyle}>{markdown}</pre>
-      </div>
+      <Fragment>
+        {selectionStyle}
+        <div
+          data-enriched-markdown-text
+          style={wrapperStyle}
+          dir={dir}
+          {...rest}
+        >
+          <pre style={parseErrorFallbackStyle}>{markdown}</pre>
+        </div>
+      </Fragment>
     );
   }
 
@@ -197,18 +220,21 @@ export const EnrichedMarkdownText = ({
   const lastIdx = children.length - 1;
 
   return (
-    <div style={wrapperStyle} dir={dir} onCopy={handleCopy} {...rest}>
-      {children.map((child, index) => (
-        <RenderNode
-          key={`${child.type}-${index}`}
-          node={child}
-          style={index === lastIdx ? lastChildStyle : normalizedStyle}
-          styles={index === lastIdx ? lastChildStyles : styles}
-          callbacks={callbacks}
-          capabilities={capabilities}
-        />
-      ))}
-    </div>
+    <Fragment>
+      {selectionStyle}
+      <div data-enriched-markdown-text style={wrapperStyle} dir={dir} {...rest}>
+        {children.map((child, index) => (
+          <RenderNode
+            key={`${child.type}-${index}`}
+            node={child}
+            style={index === lastIdx ? lastChildStyle : normalizedStyle}
+            styles={index === lastIdx ? lastChildStyles : styles}
+            callbacks={callbacks}
+            capabilities={capabilities}
+          />
+        ))}
+      </div>
+    </Fragment>
   );
 };
 
