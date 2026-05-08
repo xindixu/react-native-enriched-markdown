@@ -83,6 +83,8 @@ class EnrichedMarkdown
 
     private var onLinkPressCallback: ((String) -> Unit)? = null
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
+    private var onMentionPressCallback: ((String, String) -> Unit)? = null
+    private var onCitationPressCallback: ((String, String) -> Unit)? = null
     private var onTaskListItemPressCallback: ((Int, Boolean, String) -> Unit)? = null
     private var contextMenuItemTexts: List<String> = emptyList()
     var onContextMenuItemPressCallback: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
@@ -196,6 +198,14 @@ class EnrichedMarkdown
 
     fun setOnLinkLongPressCallback(callback: (String) -> Unit) {
       onLinkLongPressCallback = callback
+    }
+
+    fun setOnMentionPressCallback(callback: ((url: String, text: String) -> Unit)?) {
+      onMentionPressCallback = callback
+    }
+
+    fun setOnCitationPressCallback(callback: ((url: String, text: String) -> Unit)?) {
+      onCitationPressCallback = callback
     }
 
     fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?) {
@@ -421,6 +431,8 @@ class EnrichedMarkdown
           justificationMode = android.text.Layout.JUSTIFICATION_MODE_INTER_WORD
         }
         lastElementMarginBottom = segment.lastElementMarginBottom
+        onMentionPressCallback = this@EnrichedMarkdown.onMentionPressCallback
+        onCitationPressCallback = this@EnrichedMarkdown.onCitationPressCallback
         applyStyledText(segment.styledText)
         segment.imageSpans.forEach { it.registerTextView(this) }
 
@@ -443,6 +455,8 @@ class EnrichedMarkdown
       maxFontSizeMultiplier = this@EnrichedMarkdown.maxFontSizeMultiplier
       onLinkPress = onLinkPressCallback
       onLinkLongPress = onLinkLongPressCallback
+      onMentionPress = onMentionPressCallback
+      onCitationPress = onCitationPressCallback
       applyTableNode(segment.node)
     }
 

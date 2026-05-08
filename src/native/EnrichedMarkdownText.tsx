@@ -15,17 +15,24 @@ import type {
   LinkPressEvent,
   LinkLongPressEvent,
   TaskListItemPressEvent,
+  MentionPressEvent,
+  CitationPressEvent,
   OnContextMenuItemPressEvent,
 } from '../types/events';
 
-export type { MarkdownStyle, Md4cFlags };
 export type {
-  EnrichedMarkdownTextProps,
-  StreamingConfig,
+  CitationPressEvent,
   ContextMenuItem,
+  EnrichedMarkdownTextProps,
+  LinkLongPressEvent,
+  LinkPressEvent,
+  MarkdownStyle,
+  Md4cFlags,
+  MentionPressEvent,
   SelectionMenuConfig,
+  StreamingConfig,
+  TaskListItemPressEvent,
 };
-export type { LinkPressEvent, LinkLongPressEvent, TaskListItemPressEvent };
 
 const defaultMd4cFlags: Md4cFlags = {
   underline: false,
@@ -39,6 +46,8 @@ export const EnrichedMarkdownText = ({
   onLinkPress,
   onLinkLongPress,
   onTaskListItemPress,
+  onMentionPress,
+  onCitationPress,
   enableLinkPreview,
   selectable = true,
   md4cFlags = defaultMd4cFlags,
@@ -131,6 +140,22 @@ export const EnrichedMarkdownText = ({
     [onTaskListItemPress]
   );
 
+  const handleMentionPress = useCallback(
+    (e: NativeSyntheticEvent<MentionPressEvent>) => {
+      const { url, text } = e.nativeEvent;
+      onMentionPress?.({ url, text });
+    },
+    [onMentionPress]
+  );
+
+  const handleCitationPress = useCallback(
+    (e: NativeSyntheticEvent<CitationPressEvent>) => {
+      const { url, text } = e.nativeEvent;
+      onCitationPress?.({ url, text });
+    },
+    [onCitationPress]
+  );
+
   const tableMode = streamingConfig?.tableMode ?? 'hidden';
   const normalizedStreamingConfig = useMemo(() => ({ tableMode }), [tableMode]);
   const normalizedSelectionMenuConfig = useMemo(
@@ -147,6 +172,8 @@ export const EnrichedMarkdownText = ({
     onLinkPress: handleLinkPress,
     onLinkLongPress: handleLinkLongPress,
     onTaskListItemPress: handleTaskListItemPress,
+    onMentionPress: onMentionPress ? handleMentionPress : undefined,
+    onCitationPress: onCitationPress ? handleCitationPress : undefined,
     enableLinkPreview: onLinkLongPress == null && (enableLinkPreview ?? true),
     selectable,
     md4cFlags: normalizedMd4cFlags,

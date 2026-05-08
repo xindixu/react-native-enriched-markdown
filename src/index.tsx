@@ -11,6 +11,8 @@ export type {
   LinkPressEvent,
   LinkLongPressEvent,
   TaskListItemPressEvent,
+  MentionPressEvent,
+  CitationPressEvent,
 } from './types/events';
 
 export { EnrichedMarkdownTextInput } from './EnrichedMarkdownTextInput';
