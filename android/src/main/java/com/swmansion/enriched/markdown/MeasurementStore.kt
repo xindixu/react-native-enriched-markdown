@@ -378,7 +378,16 @@ object MeasurementStore {
       }
 
       val totalHeightDip = PixelUtil.toDIPFromPixel(totalHeightPx)
-      val measuredWidthDip = PixelUtil.toDIPFromPixel(maxContentWidthPx).coerceAtMost(PixelUtil.toDIPFromPixel(width))
+      // A shrink-wrapped Fabric node crosses px -> dp -> px before its child
+      // TextView is laid out. Reserving exactly the glyph width can round down
+      // on that trip and make the final character wrap onto a second line.
+      val guardedContentWidthPx =
+        if (maxContentWidthPx > 0f) {
+          (maxContentWidthPx + 1f).coerceAtMost(width)
+        } else {
+          0f
+        }
+      val measuredWidthDip = PixelUtil.toDIPFromPixel(guardedContentWidthPx)
       val result = YogaMeasureOutput.make(measuredWidthDip, totalHeightDip)
 
       if (id != null) {
