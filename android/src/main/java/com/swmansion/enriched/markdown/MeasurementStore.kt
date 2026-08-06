@@ -2,8 +2,8 @@ package com.swmansion.enriched.markdown
 
 import android.content.Context
 import android.graphics.Typeface
-import android.graphics.text.LineBreaker
 import android.os.Build
+import android.text.Layout
 import android.text.SpannableString
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -378,7 +378,16 @@ object MeasurementStore {
       }
 
       val totalHeightDip = PixelUtil.toDIPFromPixel(totalHeightPx)
-      val measuredWidthDip = PixelUtil.toDIPFromPixel(maxContentWidthPx).coerceAtMost(PixelUtil.toDIPFromPixel(width))
+      // A shrink-wrapped Fabric node crosses px -> dp -> px before its child
+      // TextView is laid out. Reserving exactly the glyph width can round down
+      // on that trip and make the final character wrap onto a second line.
+      val guardedContentWidthPx =
+        if (maxContentWidthPx > 0f) {
+          (maxContentWidthPx + 1f).coerceAtMost(width)
+        } else {
+          0f
+        }
+      val measuredWidthDip = PixelUtil.toDIPFromPixel(guardedContentWidthPx)
       val result = YogaMeasureOutput.make(measuredWidthDip, totalHeightDip)
 
       if (id != null) {
@@ -391,6 +400,23 @@ object MeasurementStore {
     }
   }
 
+  /**
+   * Applies line-breaking config that MUST stay identical to the rendered
+   * TextView (see setupAsMarkdownTextView). BREAK_STRATEGY_HIGH_QUALITY +
+   * HYPHENATION_FREQUENCY_NONE are pinned from API 23 (M) up so measure == render
+   * on every API level; otherwise the view clips the tail of wrapped content.
+   */
+  private fun StaticLayout.Builder.applyMarkdownLineBreaking(): StaticLayout.Builder {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
+      setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      setUseLineSpacingFromFallbacks(true)
+    }
+    return this
+  }
+
   private fun createStaticLayout(
     text: CharSequence,
     fontSize: Float,
@@ -401,14 +427,8 @@ object MeasurementStore {
       .obtain(text, 0, text.length, measurePaint, widthPx)
       .setIncludePad(false)
       .setLineSpacing(0f, 1f)
-      .apply {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          setBreakStrategy(LineBreaker.BREAK_STRATEGY_HIGH_QUALITY)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-          setUseLineSpacingFromFallbacks(true)
-        }
-      }.build()
+      .applyMarkdownLineBreaking()
+      .build()
   }
 
   private fun tryRenderMarkdown(
@@ -479,14 +499,7 @@ object MeasurementStore {
         .obtain(content, 0, content.length, paint, safeWidth)
         .setIncludePad(false)
         .setLineSpacing(0f, 1f)
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-      builder.setBreakStrategy(LineBreaker.BREAK_STRATEGY_HIGH_QUALITY)
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-      builder.setUseLineSpacingFromFallbacks(true)
-    }
+        .applyMarkdownLineBreaking()
 
     val layout = builder.build()
     val measuredHeight = layout.height.toFloat()
@@ -516,14 +529,8 @@ object MeasurementStore {
         .obtain(content, 0, content.length, paint, widthPx)
         .setIncludePad(false)
         .setLineSpacing(0f, 1f)
-        .apply {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            setBreakStrategy(LineBreaker.BREAK_STRATEGY_HIGH_QUALITY)
-          }
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            setUseLineSpacingFromFallbacks(true)
-          }
-        }.build()
+        .applyMarkdownLineBreaking()
+        .build()
 
     // Find the widest line to get the actual content width
     val maxLineWidth =
