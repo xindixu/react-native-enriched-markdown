@@ -12,6 +12,8 @@ public:
   std::vector<std::shared_ptr<MarkdownASTNode>> nodeStack;
   std::string currentText;
   std::string_view input;
+  size_t taskMarkByteCursor = 0;
+  size_t taskMarkUtf16Cursor = 0;
 
   static const std::string ATTR_LEVEL;
   static const std::string ATTR_URL;
@@ -34,32 +36,35 @@ public:
     return true;
   }
 
-  static size_t utf16OffsetForUtf8ByteOffset(std::string_view text, MD_OFFSET byteOffset) {
-    const size_t limit = std::min(text.size(), static_cast<size_t>(byteOffset));
-    size_t utf16Offset = 0;
+  size_t utf16OffsetForTaskMarkByteOffset(MD_OFFSET byteOffset) {
+    const size_t limit = std::min(input.size(), static_cast<size_t>(byteOffset));
+    if (limit < taskMarkByteCursor) {
+      taskMarkByteCursor = 0;
+      taskMarkUtf16Cursor = 0;
+    }
 
-    for (size_t i = 0; i < limit;) {
-      const unsigned char byte = static_cast<unsigned char>(text[i]);
+    for (; taskMarkByteCursor < limit;) {
+      const unsigned char byte = static_cast<unsigned char>(input[taskMarkByteCursor]);
       size_t utf8Length = 1;
       size_t utf16Length = 1;
 
-      if ((byte & 0xE0) == 0xC0 && hasContinuationBytes(text, i, 2)) {
+      if ((byte & 0xE0) == 0xC0 && hasContinuationBytes(input, taskMarkByteCursor, 2)) {
         utf8Length = 2;
-      } else if ((byte & 0xF0) == 0xE0 && hasContinuationBytes(text, i, 3)) {
+      } else if ((byte & 0xF0) == 0xE0 && hasContinuationBytes(input, taskMarkByteCursor, 3)) {
         utf8Length = 3;
-      } else if ((byte & 0xF8) == 0xF0 && hasContinuationBytes(text, i, 4)) {
+      } else if ((byte & 0xF8) == 0xF0 && hasContinuationBytes(input, taskMarkByteCursor, 4)) {
         utf8Length = 4;
         utf16Length = 2;
       }
 
-      if (i + utf8Length > limit)
+      if (taskMarkByteCursor + utf8Length > limit)
         break;
 
-      utf16Offset += utf16Length;
-      i += utf8Length;
+      taskMarkUtf16Cursor += utf16Length;
+      taskMarkByteCursor += utf8Length;
     }
 
-    return utf16Offset;
+    return taskMarkUtf16Cursor;
   }
 
   void reset(size_t estimatedDepth) {
@@ -72,6 +77,9 @@ public:
     nodeStack.push_back(root);
     currentText.clear();
     currentText.reserve(256);
+    input = {};
+    taskMarkByteCursor = 0;
+    taskMarkUtf16Cursor = 0;
   }
 
   void flushText() {
@@ -168,7 +176,7 @@ public:
             node->setAttribute(ATTR_IS_TASK, "true");
             node->setAttribute(ATTR_TASK_CHECKED, (li->task_mark == 'x' || li->task_mark == 'X') ? "true" : "false");
             node->setAttribute(ATTR_TASK_MARK_OFFSET,
-                               std::to_string(utf16OffsetForUtf8ByteOffset(impl->input, li->task_mark_offset)));
+                               std::to_string(impl->utf16OffsetForTaskMarkByteOffset(li->task_mark_offset)));
           }
         }
         impl->pushNode(node);
