@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { sampleMarkdown } from './sampleMarkdown';
 import { customMarkdownStyle } from './markdownStyles';
 import InputScreen from './InputScreen';
+import { TaskListDemo } from '../../task-list-demo/TaskListDemo';
 
 type Screen = 'text' | 'input';
 
@@ -121,6 +122,9 @@ export default function App() {
           style={styles.scrollView}
           contentContainerStyle={styles.content}
         >
+          <TaskListDemo />
+          <View style={styles.divider} />
+
           <EnrichedMarkdownText
             flavor="github"
             markdown={sampleMarkdown}
@@ -165,5 +169,10 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingVertical: 16,
+  },
+  divider: {
+    height: 1,
+    marginVertical: 24,
+    backgroundColor: '#E5E7EB',
   },
 });
