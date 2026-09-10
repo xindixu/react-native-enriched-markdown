@@ -7,7 +7,8 @@
 
 TaskListHitTestResult taskListHitTest(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer)
 {
-  const TaskListHitTestResult notFound = {.found = NO, .index = 0, .checked = NO, .itemRange = {0, 0}};
+  const TaskListHitTestResult notFound = {
+      .found = NO, .index = 0, .checked = NO, .itemRange = {0, 0}, .taskMarkOffset = -1};
 
   NSLayoutManager *layoutManager = textView.layoutManager;
   NSTextContainer *textContainer = textView.textContainer;
@@ -51,10 +52,12 @@ TaskListHitTestResult taskListHitTest(ENRMPlatformTextView *textView, ENRMTapRec
     [attrText attribute:TaskItemAttribute atIndex:charIndex effectiveRange:&fullItemRange];
   }
 
-  return (TaskListHitTestResult){.found = YES,
-                                 .index = taskIndex,
-                                 .checked = [attributes[TaskCheckedAttribute] boolValue],
-                                 .itemRange = fullItemRange};
+  return (TaskListHitTestResult){
+      .found = YES,
+      .index = taskIndex,
+      .checked = [attributes[TaskCheckedAttribute] boolValue],
+      .itemRange = fullItemRange,
+      .taskMarkOffset = attributes[TaskMarkOffsetAttribute] ? [attributes[TaskMarkOffsetAttribute] integerValue] : -1};
 }
 
 NSRange taskListItemFullRange(ENRMPlatformTextView *textView, NSInteger taskIndex)
@@ -108,39 +111,30 @@ NSString *taskListItemText(ENRMPlatformTextView *textView, NSRange itemRange)
 }
 
 BOOL handleTaskListTap(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer,
-                       void (^handler)(NSInteger index, BOOL checked, NSString *itemText))
+                       void (^handler)(NSInteger index, BOOL checked, NSString *itemText, NSInteger taskMarkOffset))
 {
   TaskListHitTestResult hit = taskListHitTest(textView, recognizer);
   if (!hit.found)
     return NO;
 
   NSString *itemText = taskListItemText(textView, hit.itemRange);
-  handler(hit.index, hit.checked, itemText);
+  handler(hit.index, hit.checked, itemText, hit.taskMarkOffset);
   return YES;
 }
 
-NSString *toggleTaskListItemAtIndex(NSString *markdown, NSInteger targetIndex, BOOL checked)
+NSString *toggleTaskListItemAtOffset(NSString *markdown, NSInteger taskMarkOffset, BOOL checked)
 {
-  NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^([ \\t]*[-*+][ \\t]+)\\[[ xX]\\]"
-                                                                         options:NSRegularExpressionAnchorsMatchLines
-                                                                           error:nil];
-
-  NSArray<NSTextCheckingResult *> *matches = [regex matchesInString:markdown
-                                                            options:0
-                                                              range:NSMakeRange(0, markdown.length)];
-
-  if (targetIndex < 0 || targetIndex >= (NSInteger)matches.count) {
-    return [markdown copy];
+  if (taskMarkOffset <= 0 || markdown.length < 3 || (NSUInteger)taskMarkOffset >= markdown.length - 1) {
+    return markdown;
   }
-
-  NSTextCheckingResult *match = matches[targetIndex];
-  NSRange prefixRange = [match rangeAtIndex:1];
-  NSString *prefix = [markdown substringWithRange:prefixRange];
-  NSString *replacement = [NSString stringWithFormat:@"%@[%@]", prefix, checked ? @" " : @"x"];
-
-  NSMutableString *result = [markdown mutableCopy];
-  [result replaceCharactersInRange:match.range withString:replacement];
-  return [result copy];
+  if ([markdown characterAtIndex:taskMarkOffset - 1] != '[' || [markdown characterAtIndex:taskMarkOffset + 1] != ']') {
+    return markdown;
+  }
+  unichar marker = [markdown characterAtIndex:taskMarkOffset];
+  if (marker != ' ' && marker != 'x' && marker != 'X') {
+    return markdown;
+  }
+  return [markdown stringByReplacingCharactersInRange:NSMakeRange(taskMarkOffset, 1) withString:checked ? @"x" : @" "];
 }
 
 BOOL updateTaskListItemCheckedState(ENRMPlatformTextView *textView, NSInteger targetIndex, BOOL newChecked,
@@ -208,20 +202,22 @@ BOOL updateTaskListItemCheckedState(ENRMPlatformTextView *textView, NSInteger ta
 
 BOOL handleTaskListTapWithSharedLogic(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer,
                                       NSString *__strong *cachedMarkdown, StyleConfig *config,
-                                      void (^eventEmitterBlock)(NSInteger index, BOOL checked, NSString *itemText),
+                                      void (^eventEmitterBlock)(NSInteger index, BOOL checked, NSString *itemText,
+                                                                NSInteger taskMarkOffset),
                                       void (^renderBlock)(NSString *updatedMarkdown))
 {
-  return handleTaskListTap(textView, recognizer, ^(NSInteger index, BOOL checked, NSString *itemText) {
-    BOOL newChecked = !checked;
+  return handleTaskListTap(
+      textView, recognizer, ^(NSInteger index, BOOL checked, NSString *itemText, NSInteger taskMarkOffset) {
+        BOOL newChecked = !checked;
 
-    NSString *updatedMarkdown = toggleTaskListItemAtIndex(*cachedMarkdown, index, newChecked);
-    *cachedMarkdown = updatedMarkdown;
+        NSString *updatedMarkdown = toggleTaskListItemAtOffset(*cachedMarkdown, taskMarkOffset, newChecked);
+        *cachedMarkdown = updatedMarkdown;
 
-    if (updateTaskListItemCheckedState(textView, index, newChecked, config)) {
-      eventEmitterBlock(index, newChecked, itemText);
-    } else {
-      renderBlock(updatedMarkdown);
-      eventEmitterBlock(index, newChecked, itemText);
-    }
-  });
+        if (updateTaskListItemCheckedState(textView, index, newChecked, config)) {
+          eventEmitterBlock(index, newChecked, itemText, taskMarkOffset);
+        } else {
+          renderBlock(updatedMarkdown);
+          eventEmitterBlock(index, newChecked, itemText, taskMarkOffset);
+        }
+      });
 }

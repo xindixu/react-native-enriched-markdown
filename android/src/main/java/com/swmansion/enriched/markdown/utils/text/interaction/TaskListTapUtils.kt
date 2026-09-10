@@ -16,27 +16,8 @@ data class TaskListHitTestResult(
   val taskIndex: Int,
   val checked: Boolean,
   val itemText: String,
+  val taskMarkOffset: Int,
 )
-
-object TaskListToggleUtils {
-  private val TASK_PATTERN = Regex("""^([ \t]*[-*+][ \t]+)\[[ xX]]""", RegexOption.MULTILINE)
-
-  fun toggleAtIndex(
-    markdown: String,
-    index: Int,
-    checked: Boolean,
-  ): String {
-    val matches = TASK_PATTERN.findAll(markdown).toList()
-    if (index < 0 || index >= matches.size) return markdown
-
-    val match = matches[index]
-    val prefix = match.groupValues[1]
-
-    val replacement = "$prefix[${if (checked) "x" else " "}]"
-
-    return markdown.replaceRange(match.range, replacement)
-  }
-}
 
 object TaskListTapUtils {
   fun hitTest(
@@ -86,6 +67,7 @@ object TaskListTapUtils {
         taskIndex = taskSpan.taskIndex,
         checked = taskSpan.isChecked,
         itemText = itemText,
+        taskMarkOffset = taskSpan.taskMarkOffset,
       )
     }
 
@@ -126,6 +108,7 @@ object TaskListTapUtils {
         styleCache = styleCache,
         taskIndex = targetIndex,
         isChecked = newChecked,
+        taskMarkOffset = targetSpan.taskMarkOffset,
       )
 
     spannable.removeSpan(targetSpan)

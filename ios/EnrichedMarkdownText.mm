@@ -530,13 +530,14 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownTextCls(void)
 
   if (handleTaskListTapWithSharedLogic(
           textView, recognizer, &self->_cachedMarkdown, self->_config,
-          ^(NSInteger index, BOOL checked, NSString *itemText) {
+          ^(NSInteger index, BOOL checked, NSString *itemText, NSInteger taskMarkOffset) {
             auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownTextEventEmitter const>(self->_eventEmitter);
             if (eventEmitter) {
               eventEmitter->onTaskListItemPress({
                   .index = (int)index,
                   .checked = checked,
                   .text = std::string([itemText UTF8String] ?: ""),
+                  .taskMarkOffset = (int)taskMarkOffset,
               });
             }
           },

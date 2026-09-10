@@ -10,6 +10,8 @@ export interface TaskListItemPressEvent {
   index: number;
   checked: boolean;
   text: string;
+  /** UTF-16 code-unit offset of the marker inside `[ ]`/`[x]`/`[X]` in the exact markdown prop. */
+  taskMarkOffset: number;
 }
 
 export interface MentionPressEvent {

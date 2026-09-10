@@ -64,11 +64,11 @@ class EnrichedMarkdownManager :
       emitCitationPress(view, url, text)
     }
 
-    view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText ->
+    view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText, taskMarkOffset ->
       val newChecked = !checked
-      val updatedMarkdown = TaskListToggleUtils.toggleAtIndex(view.currentMarkdown, taskIndex, newChecked)
+      val updatedMarkdown = TaskListToggleUtils.toggleAtOffset(view.currentMarkdown, taskMarkOffset, newChecked)
       view.setMarkdownContent(updatedMarkdown)
-      emitTaskListItemPress(view, taskIndex, newChecked, itemText)
+      emitTaskListItemPress(view, taskIndex, newChecked, itemText, taskMarkOffset)
     }
 
     view?.setMarkdownContent(markdown ?: "")

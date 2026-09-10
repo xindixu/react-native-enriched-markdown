@@ -32,7 +32,7 @@ class EnrichedMarkdownInternalText
 
     private val checkboxTouchHelper = CheckboxTouchHelper(this)
 
-    var onTaskListItemPressCallback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?
+    var onTaskListItemPressCallback: ((taskIndex: Int, checked: Boolean, itemText: String, taskMarkOffset: Int) -> Unit)?
       get() = checkboxTouchHelper.onCheckboxTap
       set(value) {
         checkboxTouchHelper.onCheckboxTap = value

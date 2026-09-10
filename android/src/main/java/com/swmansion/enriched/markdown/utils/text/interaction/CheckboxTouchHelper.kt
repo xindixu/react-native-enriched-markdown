@@ -10,7 +10,7 @@ import kotlin.math.abs
 class CheckboxTouchHelper(
   private val textView: TextView,
 ) {
-  var onCheckboxTap: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)? = null
+  var onCheckboxTap: ((taskIndex: Int, checked: Boolean, itemText: String, taskMarkOffset: Int) -> Unit)? = null
 
   private var touchDownX = 0f
   private var touchDownY = 0f
@@ -38,7 +38,7 @@ class CheckboxTouchHelper(
         val hit = pendingHit ?: return false
         pendingHit = null
         if (!isExceedingSlop(event)) {
-          onCheckboxTap?.invoke(hit.taskIndex, hit.checked, hit.itemText)
+          onCheckboxTap?.invoke(hit.taskIndex, hit.checked, hit.itemText, hit.taskMarkOffset)
         }
         return true
       }

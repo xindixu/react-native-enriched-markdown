@@ -62,7 +62,7 @@ class EnrichedMarkdown
     private var onLinkLongPressCallback: ((String) -> Unit)? = null
     private var onMentionPressCallback: ((String, String) -> Unit)? = null
     private var onCitationPressCallback: ((String, String) -> Unit)? = null
-    private var onTaskListItemPressCallback: ((Int, Boolean, String) -> Unit)? = null
+    private var onTaskListItemPressCallback: ((Int, Boolean, String, Int) -> Unit)? = null
     private var contextMenuItemTexts: List<String> = emptyList()
     var onContextMenuItemPressCallback: ((itemText: String, selectedText: String, selectionStart: Int, selectionEnd: Int) -> Unit)? = null
     var spoilerOverlay: SpoilerOverlay = SpoilerOverlay.PARTICLES
@@ -165,7 +165,7 @@ class EnrichedMarkdown
       onCitationPressCallback = callback
     }
 
-    fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?) {
+    fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String, taskMarkOffset: Int) -> Unit)?) {
       onTaskListItemPressCallback = callback
     }
 
@@ -258,8 +258,8 @@ class EnrichedMarkdown
         applyStyledText(segment.styledText)
         segment.imageSpans.forEach { it.registerTextView(this) }
 
-        onTaskListItemPressCallback = { taskIndex, checked, itemText ->
-          this@EnrichedMarkdown.onTaskListItemPressCallback?.invoke(taskIndex, checked, itemText)
+        onTaskListItemPressCallback = { taskIndex, checked, itemText, taskMarkOffset ->
+          this@EnrichedMarkdown.onTaskListItemPressCallback?.invoke(taskIndex, checked, itemText, taskMarkOffset)
         }
 
         if (contextMenuItemTexts.isNotEmpty()) {

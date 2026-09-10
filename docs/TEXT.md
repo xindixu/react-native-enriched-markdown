@@ -67,14 +67,18 @@ Task lists with interactive checkboxes are available when `flavor="github"` is s
 - [ ] Incomplete task
 - [x] Another completed task
   `}
-  onTaskListItemPress={({ index, checked, text }) => {
+  onTaskListItemPress={({ index, checked, text, taskMarkOffset }) => {
     console.log(
-      `Task ${index}: ${checked ? 'checked' : 'unchecked'} - ${text}`
+      `Task ${index} at ${taskMarkOffset}: ${checked ? 'checked' : 'unchecked'} - ${text}`
     );
     // Update your state or data model here
   }}
 />
 ```
+
+The event preserves `index` (the zero-based task-item index), `text` (the item text), and `checked` (the **new** state after the tap). `taskMarkOffset` is the zero-based UTF-16 code-unit offset of the single character between `[` and `]` in the exact `markdown` prop. It addresses the space, `x`, or `X`, not the opening bracket or rendered text. It uses the same indexing as JavaScript strings, Kotlin strings, and `NSString`; an astral character such as `😀` occupies two code units. For example, in `"😀\n- [ ] task"` the offset is `6`.
+
+The offset comes from the Markdown parser, so ordered, nested, and blockquoted tasks retain their source positions, and task-like text in code blocks does not shift them. To persist a toggle, use the offset against the same source string that produced the event. Check that the offset is in bounds, that its neighbors are `[` and `]`, and that the current marker is a space, `x`, or `X`. Then replace only that character with `x` when `checked` is true, or a space when false. Native fallback updates perform these checks and leave the source unchanged if they fail. An offset is not a stable identifier across source edits; a stale offset that happens to point to another valid marker cannot be distinguished by these checks.
 
 ### Link Handling
 

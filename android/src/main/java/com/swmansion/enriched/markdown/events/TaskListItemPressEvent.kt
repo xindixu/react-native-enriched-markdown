@@ -10,6 +10,7 @@ class TaskListItemPressEvent(
   private val taskIndex: Int,
   private val checked: Boolean,
   private val itemText: String,
+  private val taskMarkOffset: Int,
 ) : Event<TaskListItemPressEvent>(surfaceId, viewId) {
   override fun getEventName(): String = EVENT_NAME
 
@@ -18,6 +19,7 @@ class TaskListItemPressEvent(
       putInt("index", taskIndex)
       putBoolean("checked", checked)
       putString("text", itemText)
+      putInt("taskMarkOffset", taskMarkOffset)
     }
 
   companion object {

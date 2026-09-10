@@ -46,6 +46,8 @@ export interface NodeAttributes {
   fenceChar?: string;
   isTask?: string;
   taskChecked?: string;
+  /** UTF-16 source offset serialized by the parser. */
+  taskMarkOffset?: string;
   /** Stamped by indexTaskItems() — not present in the raw WASM output. */
   taskIndex?: number;
   /** Stamped by markInlineImages() — not present in the raw WASM output. */

@@ -29,6 +29,7 @@ class EnrichedMarkdownEventEmitter : public ViewEventEmitter {
       int index;
     bool checked;
     std::string text;
+    int taskMarkOffset;
     };
 
   struct OnMentionPress {
@@ -222,6 +223,7 @@ class EnrichedMarkdownTextEventEmitter : public ViewEventEmitter {
       int index;
     bool checked;
     std::string text;
+    int taskMarkOffset;
     };
 
   struct OnMentionPress {
