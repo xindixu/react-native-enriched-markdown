@@ -1,6 +1,7 @@
 #include "MD4CParser.hpp"
 #include "../md4c/md4c.h"
 #include <cstring>
+#include <string_view>
 #include <vector>
 
 namespace Markdown {
@@ -10,7 +11,7 @@ public:
   std::shared_ptr<MarkdownASTNode> root;
   std::vector<std::shared_ptr<MarkdownASTNode>> nodeStack;
   std::string currentText;
-  const char *inputText = nullptr;
+  std::string_view input;
 
   static const std::string ATTR_LEVEL;
   static const std::string ATTR_URL;
@@ -19,6 +20,47 @@ public:
   static const std::string ATTR_LANGUAGE;
   static const std::string ATTR_IS_TASK;
   static const std::string ATTR_TASK_CHECKED;
+  static const std::string ATTR_TASK_MARK_OFFSET;
+
+  static bool hasContinuationBytes(std::string_view text, size_t offset, size_t length) {
+    if (offset + length > text.size())
+      return false;
+
+    for (size_t i = 1; i < length; ++i) {
+      if ((static_cast<unsigned char>(text[offset + i]) & 0xC0) != 0x80)
+        return false;
+    }
+
+    return true;
+  }
+
+  static size_t utf16OffsetForUtf8ByteOffset(std::string_view text, MD_OFFSET byteOffset) {
+    const size_t limit = std::min(text.size(), static_cast<size_t>(byteOffset));
+    size_t utf16Offset = 0;
+
+    for (size_t i = 0; i < limit;) {
+      const unsigned char byte = static_cast<unsigned char>(text[i]);
+      size_t utf8Length = 1;
+      size_t utf16Length = 1;
+
+      if ((byte & 0xE0) == 0xC0 && hasContinuationBytes(text, i, 2)) {
+        utf8Length = 2;
+      } else if ((byte & 0xF0) == 0xE0 && hasContinuationBytes(text, i, 3)) {
+        utf8Length = 3;
+      } else if ((byte & 0xF8) == 0xF0 && hasContinuationBytes(text, i, 4)) {
+        utf8Length = 4;
+        utf16Length = 2;
+      }
+
+      if (i + utf8Length > limit)
+        break;
+
+      utf16Offset += utf16Length;
+      i += utf8Length;
+    }
+
+    return utf16Offset;
+  }
 
   void reset(size_t estimatedDepth) {
     root = std::make_shared<MarkdownASTNode>(NodeType::Document);
@@ -125,6 +167,8 @@ public:
           if (li->is_task) {
             node->setAttribute(ATTR_IS_TASK, "true");
             node->setAttribute(ATTR_TASK_CHECKED, (li->task_mark == 'x' || li->task_mark == 'X') ? "true" : "false");
+            node->setAttribute(ATTR_TASK_MARK_OFFSET,
+                               std::to_string(utf16OffsetForUtf8ByteOffset(impl->input, li->task_mark_offset)));
           }
         }
         impl->pushNode(node);
@@ -465,7 +509,7 @@ std::shared_ptr<MarkdownASTNode> MD4CParser::parse(const std::string &markdown, 
   }
 
   impl_->reset(estimatedDepth);
-  impl_->inputText = markdown.c_str();
+  impl_->input = markdown;
 
   unsigned flags = MD_FLAG_NOHTML | MD_FLAG_STRIKETHROUGH | MD_FLAG_TABLES | MD_FLAG_TASKLISTS | MD_FLAG_SPOILER;
   if (md4cFlags.permissiveAutolinks) {
@@ -511,5 +555,6 @@ const std::string MD4CParser::Impl::ATTR_FENCE_CHAR = "fenceChar";
 const std::string MD4CParser::Impl::ATTR_LANGUAGE = "language";
 const std::string MD4CParser::Impl::ATTR_IS_TASK = "isTask";
 const std::string MD4CParser::Impl::ATTR_TASK_CHECKED = "taskChecked";
+const std::string MD4CParser::Impl::ATTR_TASK_MARK_OFFSET = "taskMarkOffset";
 
 } // namespace Markdown
