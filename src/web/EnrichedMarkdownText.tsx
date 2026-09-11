@@ -44,9 +44,15 @@ export const EnrichedMarkdownText = ({
     [markdownStyle]
   );
 
-  const [ast, setAst] = useState<ASTNode | null>(null);
-  const [katex, setKatex] = useState<KaTeXInstance | null>(null);
+  const [renderedDocument, setRenderedDocument] = useState<{
+    ast: ASTNode;
+    katex: KaTeXInstance | null;
+    markdown: string;
+    revision: number;
+  } | null>(null);
   const [parseError, setParseError] = useState<boolean>(false);
+  const ast = renderedDocument?.ast ?? null;
+  const katex = renderedDocument?.katex ?? null;
 
   const { underline = false, latexMath = true } = md4cFlags;
 
@@ -65,8 +71,12 @@ export const EnrichedMarkdownText = ({
           markInlineImages(result);
 
           setParseError(false);
-          setKatex(katexInstance);
-          setAst(result);
+          setRenderedDocument((previousDocument) => ({
+            ast: result,
+            katex: katexInstance,
+            markdown,
+            revision: (previousDocument?.revision ?? 0) + 1,
+          }));
         }
       })
       .catch((error) => {
@@ -76,8 +86,7 @@ export const EnrichedMarkdownText = ({
           }
 
           setParseError(true);
-          setAst(null);
-          setKatex(null);
+          setRenderedDocument(null);
         }
       });
 
@@ -90,7 +99,10 @@ export const EnrichedMarkdownText = ({
     () => ({
       onLinkPress,
       onLinkLongPress,
-      onTaskListItemPress,
+      onTaskListItemPress:
+        renderedDocument?.markdown === markdown
+          ? onTaskListItemPress
+          : undefined,
       onMentionPress,
       onCitationPress,
     }),
@@ -100,6 +112,8 @@ export const EnrichedMarkdownText = ({
       onTaskListItemPress,
       onMentionPress,
       onCitationPress,
+      markdown,
+      renderedDocument?.markdown,
     ]
   );
 
@@ -171,8 +185,9 @@ export const EnrichedMarkdownText = ({
         };
       } | null;
     };
-    const native = (event as unknown as { nativeEvent?: { clipboardData?: unknown } })
-      .nativeEvent;
+    const native = (
+      event as unknown as { nativeEvent?: { clipboardData?: unknown } }
+    ).nativeEvent;
     const clipboardRaw =
       (event as unknown as { clipboardData?: unknown }).clipboardData ??
       native?.clipboardData;
@@ -197,9 +212,9 @@ export const EnrichedMarkdownText = ({
     }
 
     // Cast: lib is ES-only; Range lives on the browser document.
-    const raw = (selection as { getRangeAt: (i: number) => unknown }).getRangeAt(
-      0
-    ) as {
+    const raw = (
+      selection as { getRangeAt: (i: number) => unknown }
+    ).getRangeAt(0) as {
       collapsed: boolean;
       cloneRange: () => {
         compareBoundaryPoints: (how: number, other: unknown) => number;
@@ -289,7 +304,7 @@ export const EnrichedMarkdownText = ({
       >
         {children.map((child, index) => (
           <RenderNode
-            key={`${child.type}-${index}`}
+            key={`${renderedDocument?.revision}-${child.type}-${index}`}
             node={child}
             style={index === lastIdx ? lastChildStyle : normalizedStyle}
             styles={index === lastIdx ? lastChildStyles : styles}
