@@ -36,7 +36,8 @@ export type NodeType =
   | 'TableHeaderCell'
   | 'TableCell'
   | 'LatexMathInline'
-  | 'LatexMathDisplay';
+  | 'LatexMathDisplay'
+  | 'Spoiler';
 
 export interface NodeAttributes {
   level?: string;

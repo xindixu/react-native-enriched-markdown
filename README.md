@@ -180,7 +180,7 @@ We're actively working on expanding the capabilities of `react-native-enriched-m
 - `EnrichedMarkdownTextInput`: headings, lists, blockquotes, code blocks, mentions, inline images
 - `EnrichedMarkdownTextInput` web support
 - macOS: block math rendering, VoiceOver accessibility, tail fade-in animation
-- Web: spoiler text, streaming animation, configurable link `target`, copy options (Copy as Markdown, multi-format clipboard)
+- Web: spoiler overlays, streaming animation, configurable link `target`, copy options (Copy as Markdown, multi-format clipboard)
 
 ## Contributing
 

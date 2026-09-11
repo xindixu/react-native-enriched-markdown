@@ -3,7 +3,7 @@ import type { MarkdownStyleInternal } from '../types/MarkdownStyleInternal';
 import type { Styles } from './styles';
 import type { LinkPressEvent, LinkLongPressEvent, TaskListItemPressEvent, MentionPressEvent, CitationPressEvent } from '../types/events';
 import type { KaTeXInstance } from './katex';
-export type NodeType = 'Document' | 'Paragraph' | 'Text' | 'Link' | 'Heading' | 'LineBreak' | 'Strong' | 'Emphasis' | 'Strikethrough' | 'Underline' | 'Code' | 'Image' | 'Blockquote' | 'UnorderedList' | 'OrderedList' | 'ListItem' | 'CodeBlock' | 'ThematicBreak' | 'Table' | 'TableHead' | 'TableBody' | 'TableRow' | 'TableHeaderCell' | 'TableCell' | 'LatexMathInline' | 'LatexMathDisplay';
+export type NodeType = 'Document' | 'Paragraph' | 'Text' | 'Link' | 'Heading' | 'LineBreak' | 'Strong' | 'Emphasis' | 'Strikethrough' | 'Underline' | 'Code' | 'Image' | 'Blockquote' | 'UnorderedList' | 'OrderedList' | 'ListItem' | 'CodeBlock' | 'ThematicBreak' | 'Table' | 'TableHead' | 'TableBody' | 'TableRow' | 'TableHeaderCell' | 'TableCell' | 'LatexMathInline' | 'LatexMathDisplay' | 'Spoiler';
 export interface NodeAttributes {
     level?: string;
     url?: string;

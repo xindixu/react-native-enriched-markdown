@@ -41,6 +41,10 @@ function UnderlineRenderer({ node, styles, renderChildren }: RendererProps) {
   return <u style={styles.underline}>{renderChildren(node)}</u>;
 }
 
+function SpoilerRenderer({ node, renderChildren }: RendererProps) {
+  return <span>{renderChildren(node)}</span>;
+}
+
 function CodeRenderer({ node, styles, renderChildren }: RendererProps) {
   return (
     <code style={styles.code}>{node.content ?? renderChildren(node)}</code>
@@ -193,6 +197,7 @@ export const inlineRenderers: RendererMap = {
   Emphasis: EmphasisRenderer,
   Strikethrough: StrikethroughRenderer,
   Underline: UnderlineRenderer,
+  Spoiler: SpoilerRenderer,
   Code: CodeRenderer,
   Link: LinkRenderer,
   LatexMathInline: LatexMathInlineRenderer,
