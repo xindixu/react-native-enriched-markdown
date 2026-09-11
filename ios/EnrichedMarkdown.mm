@@ -776,8 +776,12 @@ Class<RCTComponentViewProtocol> EnrichedMarkdownCls(void)
 - (void)textTapped:(ENRMTapRecognizer *)recognizer
 {
   ENRMPlatformTextView *textView = (ENRMPlatformTextView *)recognizer.view;
+  const auto &viewProps = *std::static_pointer_cast<EnrichedMarkdownProps const>(_props);
+  NSString *propMarkdown = [[NSString alloc] initWithUTF8String:viewProps.markdown.c_str()];
+  BOOL rendersCurrentMarkdown = [self hasRenderedMarkdown:propMarkdown];
 
-  if (handleTaskListTapWithSharedLogic(
+  if (rendersCurrentMarkdown &&
+      handleTaskListTapWithSharedLogic(
           textView, recognizer, &self->_cachedMarkdown, self->_config,
           ^(NSInteger index, BOOL checked, NSString *itemText, NSInteger taskMarkOffset) {
             auto eventEmitter = std::static_pointer_cast<EnrichedMarkdownEventEmitter const>(self->_eventEmitter);

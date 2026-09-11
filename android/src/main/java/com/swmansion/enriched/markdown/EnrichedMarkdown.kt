@@ -219,7 +219,7 @@ class EnrichedMarkdown
               onLinkLongPressCallback,
             )
 
-          postToMain(renderId) { applyRenderedSegments(renderedSegments, style) }
+          postToMain(renderId) { applyRenderedSegments(renderedSegments, style, markdown) }
         } catch (e: Exception) {
           Log.e(TAG, "Render failed", e)
           postToMain(renderId) { clearSegments() }
@@ -230,12 +230,13 @@ class EnrichedMarkdown
     private fun applyRenderedSegments(
       renderedSegments: List<RenderedSegment>,
       style: StyleConfig,
+      renderedMarkdown: String,
     ) {
       clearSegments()
       renderedSegments.forEach { segment ->
         val view =
           when (segment) {
-            is RenderedSegment.Text -> createTextView(segment)
+            is RenderedSegment.Text -> createTextView(segment, renderedMarkdown)
             is RenderedSegment.Table -> createTableView(segment, style)
             is RenderedSegment.Math -> createMathView(segment, style)
           }
@@ -245,7 +246,10 @@ class EnrichedMarkdown
       layoutSegments()
     }
 
-    private fun createTextView(segment: RenderedSegment.Text) =
+    private fun createTextView(
+      segment: RenderedSegment.Text,
+      renderedMarkdown: String,
+    ) =
       EnrichedMarkdownInternalText(context).apply {
         spoilerOverlay = this@EnrichedMarkdown.spoilerOverlay
         setIsSelectable(selectable)
@@ -258,7 +262,8 @@ class EnrichedMarkdown
         applyStyledText(segment.styledText)
         segment.imageSpans.forEach { it.registerTextView(this) }
 
-        onTaskListItemPressCallback = { taskIndex, checked, itemText, taskMarkOffset ->
+        onTaskListItemPressCallback = taskPress@{ taskIndex, checked, itemText, taskMarkOffset ->
+          if (renderedMarkdown != currentMarkdown) return@taskPress
           this@EnrichedMarkdown.onTaskListItemPressCallback?.invoke(taskIndex, checked, itemText, taskMarkOffset)
         }
 
