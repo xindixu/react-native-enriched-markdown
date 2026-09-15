@@ -67,6 +67,7 @@ function ListItemRenderer({
       index: taskIndex,
       checked: newChecked,
       text: taskText,
+      taskMarkOffset: Number(node.attributes?.taskMarkOffset),
     });
   };
 

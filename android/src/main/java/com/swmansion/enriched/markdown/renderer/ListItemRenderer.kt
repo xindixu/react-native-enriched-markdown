@@ -55,6 +55,7 @@ class ListItemRenderer(
           styleCache = factory.styleCache,
           taskIndex = taskIndex,
           isChecked = isChecked,
+          taskMarkOffset = node.attributes["taskMarkOffset"]?.toIntOrNull() ?: -1,
         )
       } else {
         when (listType) {

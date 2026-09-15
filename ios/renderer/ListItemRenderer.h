@@ -11,6 +11,7 @@ extern NSString *const ListItemNumberAttribute;
 extern NSString *const TaskItemAttribute;
 extern NSString *const TaskCheckedAttribute;
 extern NSString *const TaskIndexAttribute;
+extern NSString *const TaskMarkOffsetAttribute;
 
 @interface ListItemRenderer : NSObject <NodeRenderer>
 

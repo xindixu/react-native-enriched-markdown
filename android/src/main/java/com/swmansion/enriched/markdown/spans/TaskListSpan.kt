@@ -19,6 +19,7 @@ class TaskListSpan(
   styleCache: SpanStyleCache,
   val taskIndex: Int,
   val isChecked: Boolean,
+  val taskMarkOffset: Int,
 ) : BaseListSpan(
     depth = depth,
     context = context,

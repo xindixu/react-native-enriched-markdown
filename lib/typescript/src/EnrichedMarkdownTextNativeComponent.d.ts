@@ -196,6 +196,7 @@ export interface TaskListItemPressEvent {
     index: CodegenTypes.Int32;
     checked: boolean;
     text: string;
+    taskMarkOffset: CodegenTypes.Int32;
 }
 export interface ContextMenuItemConfig {
     text: string;

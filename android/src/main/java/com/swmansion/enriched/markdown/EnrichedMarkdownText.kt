@@ -308,7 +308,7 @@ class EnrichedMarkdownText
       onLinkLongPressCallback = callback
     }
 
-    fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String) -> Unit)?) {
+    fun setOnTaskListItemPressCallback(callback: ((taskIndex: Int, checked: Boolean, itemText: String, taskMarkOffset: Int) -> Unit)?) {
       checkboxTouchHelper.onCheckboxTap = callback
     }
 

@@ -71,7 +71,7 @@ Callback when a link is long pressed. Access URL via `event.url`. On iOS, automa
 
 ### `onTaskListItemPress`
 
-Callback when a task list checkbox is tapped. Receives `index` (0-based), `checked` (new state after toggling), and `text` (item text).
+Callback when a task list checkbox is tapped. Receives `index` (0-based), `checked` (new state after toggling), `text` (item text), and `taskMarkOffset` (the zero-based UTF-16 code-unit offset of the space, `x`, or `X` between the task's brackets in the exact `markdown` prop). See [Task Lists](TEXT.md#task-lists) for source-update validation and Unicode semantics.
 
 | Type                                            | Default Value | Platform |
 | ----------------------------------------------- | ------------- | -------- |

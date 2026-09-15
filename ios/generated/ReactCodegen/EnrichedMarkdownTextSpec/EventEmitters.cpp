@@ -37,6 +37,7 @@ void EnrichedMarkdownEventEmitter::onTaskListItemPress(OnTaskListItemPress event
     payload.setProperty(runtime, "index", event.index);
 payload.setProperty(runtime, "checked", event.checked);
 payload.setProperty(runtime, "text", event.text);
+payload.setProperty(runtime, "taskMarkOffset", event.taskMarkOffset);
     return payload;
   });
 }
@@ -275,6 +276,7 @@ void EnrichedMarkdownTextEventEmitter::onTaskListItemPress(OnTaskListItemPress e
     payload.setProperty(runtime, "index", event.index);
 payload.setProperty(runtime, "checked", event.checked);
 payload.setProperty(runtime, "text", event.text);
+payload.setProperty(runtime, "taskMarkOffset", event.taskMarkOffset);
     return payload;
   });
 }

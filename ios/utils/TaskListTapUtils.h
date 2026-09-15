@@ -15,6 +15,7 @@ typedef struct {
   NSInteger index;
   BOOL checked;
   NSRange itemRange;
+  NSInteger taskMarkOffset;
 } TaskListHitTestResult;
 
 TaskListHitTestResult taskListHitTest(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer);
@@ -24,16 +25,17 @@ NSRange taskListItemFullRange(ENRMPlatformTextView *textView, NSInteger taskInde
 NSString *taskListItemText(ENRMPlatformTextView *textView, NSRange itemRange);
 
 BOOL handleTaskListTap(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer,
-                       void (^handler)(NSInteger index, BOOL checked, NSString *itemText));
+                       void (^handler)(NSInteger index, BOOL checked, NSString *itemText, NSInteger taskMarkOffset));
 
-NSString *toggleTaskListItemAtIndex(NSString *markdown, NSInteger index, BOOL checked);
+NSString *toggleTaskListItemAtOffset(NSString *markdown, NSInteger taskMarkOffset, BOOL checked);
 
 BOOL updateTaskListItemCheckedState(ENRMPlatformTextView *textView, NSInteger targetIndex, BOOL newChecked,
                                     StyleConfig *config);
 
 BOOL handleTaskListTapWithSharedLogic(ENRMPlatformTextView *textView, ENRMTapRecognizer *recognizer,
                                       NSString *__strong *cachedMarkdown, StyleConfig *config,
-                                      void (^eventEmitterBlock)(NSInteger index, BOOL checked, NSString *itemText),
+                                      void (^eventEmitterBlock)(NSInteger index, BOOL checked, NSString *itemText,
+                                                                NSInteger taskMarkOffset),
                                       void (^renderBlock)(NSString *updatedMarkdown));
 
 #ifdef __cplusplus

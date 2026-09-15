@@ -58,6 +58,8 @@ static const char *nodeTypeToString(NodeType type) {
       return "LatexMathInline";
     case NodeType::LatexMathDisplay:
       return "LatexMathDisplay";
+    case NodeType::Spoiler:
+      return "Spoiler";
     default:
       assert(false && "unhandled NodeType in nodeTypeToString");
       return "";

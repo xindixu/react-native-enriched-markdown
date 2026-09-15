@@ -13,6 +13,7 @@ NSString *const ListItemNumberAttribute = @"ListItemNumber";
 NSString *const TaskItemAttribute = @"TaskItem";
 NSString *const TaskCheckedAttribute = @"TaskChecked";
 NSString *const TaskIndexAttribute = @"TaskIndex";
+NSString *const TaskMarkOffsetAttribute = @"TaskMarkOffset";
 
 @interface ListItemRenderer ()
 - (void)applyCheckedDecorationsTo:(NSMutableAttributedString *)output
@@ -93,6 +94,8 @@ NSString *const TaskIndexAttribute = @"TaskIndex";
     metadata[TaskItemAttribute] = @YES;
     metadata[TaskCheckedAttribute] = @(isChecked);
     metadata[TaskIndexAttribute] = @(taskIndex);
+    metadata[TaskMarkOffsetAttribute] =
+        node.attributes[@"taskMarkOffset"] ? @([node.attributes[@"taskMarkOffset"] integerValue]) : @(-1);
   }
 
   // We enumerate to ensure we don't overwrite styles of nested sub-lists

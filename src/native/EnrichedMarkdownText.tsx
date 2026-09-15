@@ -126,8 +126,8 @@ export const EnrichedMarkdownText = ({
 
   const handleTaskListItemPress = useCallback(
     (e: NativeSyntheticEvent<TaskListItemPressEvent>) => {
-      const { index, checked, text } = e.nativeEvent;
-      onTaskListItemPress?.({ index, checked, text });
+      const { index, checked, text, taskMarkOffset } = e.nativeEvent;
+      onTaskListItemPress?.({ index, checked, text, taskMarkOffset });
     },
     [onTaskListItemPress]
   );

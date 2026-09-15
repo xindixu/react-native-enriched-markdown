@@ -43,4 +43,5 @@ The web implementation also exports `WebMarkdownTextProps` which extends `Enrich
 ## Not supported on web
 
 - `EnrichedMarkdownTextInput` — native-only
+- Spoiler conceal/reveal overlays — spoiler contents render as visible inline text.
 - Configurable link `target` — all links open in a new tab (`target="_blank"`). Use `onLinkPress` for custom navigation.

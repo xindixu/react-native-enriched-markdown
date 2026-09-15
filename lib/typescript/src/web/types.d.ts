@@ -3,7 +3,7 @@ import type { MarkdownStyleInternal } from '../types/MarkdownStyleInternal';
 import type { Styles } from './styles';
 import type { LinkPressEvent, LinkLongPressEvent, TaskListItemPressEvent, MentionPressEvent, CitationPressEvent } from '../types/events';
 import type { KaTeXInstance } from './katex';
-export type NodeType = 'Document' | 'Paragraph' | 'Text' | 'Link' | 'Heading' | 'LineBreak' | 'Strong' | 'Emphasis' | 'Strikethrough' | 'Underline' | 'Code' | 'Image' | 'Blockquote' | 'UnorderedList' | 'OrderedList' | 'ListItem' | 'CodeBlock' | 'ThematicBreak' | 'Table' | 'TableHead' | 'TableBody' | 'TableRow' | 'TableHeaderCell' | 'TableCell' | 'LatexMathInline' | 'LatexMathDisplay';
+export type NodeType = 'Document' | 'Paragraph' | 'Text' | 'Link' | 'Heading' | 'LineBreak' | 'Strong' | 'Emphasis' | 'Strikethrough' | 'Underline' | 'Code' | 'Image' | 'Blockquote' | 'UnorderedList' | 'OrderedList' | 'ListItem' | 'CodeBlock' | 'ThematicBreak' | 'Table' | 'TableHead' | 'TableBody' | 'TableRow' | 'TableHeaderCell' | 'TableCell' | 'LatexMathInline' | 'LatexMathDisplay' | 'Spoiler';
 export interface NodeAttributes {
     level?: string;
     url?: string;
@@ -12,6 +12,8 @@ export interface NodeAttributes {
     fenceChar?: string;
     isTask?: string;
     taskChecked?: string;
+    /** UTF-16 source offset serialized by the parser. */
+    taskMarkOffset?: string;
     /** Stamped by indexTaskItems() — not present in the raw WASM output. */
     taskIndex?: number;
     /** Stamped by markInlineImages() — not present in the raw WASM output. */

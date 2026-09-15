@@ -9,6 +9,7 @@ import type {
   MentionPressEvent,
 } from 'react-native-enriched-markdown';
 import { sampleMarkdown } from './sampleMarkdown';
+import { TaskListDemo } from '../../task-list-demo/TaskListDemo';
 
 const latexMarkdown = `
 ## Inline Math
@@ -124,11 +125,11 @@ export default function App() {
   }, []);
 
   const onTaskListItemPress = useCallback(
-    ({ index, checked, text }: TaskListItemPressEvent) => {
+    ({ index, checked, text, taskMarkOffset }: TaskListItemPressEvent) => {
       setLastEvent({
         kind: 'task',
         label: 'onTaskListItemPress',
-        detail: `index=${index} checked=${checked} "${text.slice(0, 40)}${text.length > 40 ? '…' : ''}"`,
+        detail: `index=${index} checked=${checked} taskMarkOffset=${taskMarkOffset} "${text.slice(0, 40)}${text.length > 40 ? '…' : ''}"`,
       });
     },
     []
@@ -158,6 +159,10 @@ export default function App() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
       >
+        <TaskListDemo />
+
+        <View style={styles.divider} />
+
         <SectionLabel>LaTeX</SectionLabel>
         <EnrichedMarkdownText markdown={latexMarkdown} />
 

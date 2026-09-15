@@ -75,12 +75,13 @@ fun emitTaskListItemPress(
   taskIndex: Int,
   checked: Boolean,
   itemText: String,
+  taskMarkOffset: Int,
 ) {
   val context = view.context as com.facebook.react.bridge.ReactContext
   val surfaceId = UIManagerHelper.getSurfaceId(context)
   val eventDispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)
   eventDispatcher?.dispatchEvent(
-    TaskListItemPressEvent(surfaceId, view.id, taskIndex, checked, itemText),
+    TaskListItemPressEvent(surfaceId, view.id, taskIndex, checked, itemText, taskMarkOffset),
   )
 }
 

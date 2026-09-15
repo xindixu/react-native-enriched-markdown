@@ -62,7 +62,7 @@ class EnrichedMarkdownTextManager :
       emitLinkLongPress(view, url)
     }
 
-    view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText ->
+    view?.setOnTaskListItemPressCallback { taskIndex, checked, itemText, taskMarkOffset ->
       val newChecked = !checked
 
       val styleConfig = view.markdownStyle
@@ -70,15 +70,15 @@ class EnrichedMarkdownTextManager :
         styleConfig != null && TaskListTapUtils.updateTaskListItemCheckedState(view, taskIndex, newChecked, styleConfig)
 
       if (optimizedSuccess) {
-        emitTaskListItemPress(view, taskIndex, newChecked, itemText)
+        emitTaskListItemPress(view, taskIndex, newChecked, itemText, taskMarkOffset)
         return@setOnTaskListItemPressCallback
       }
 
       val currentMarkdown = view.currentMarkdown
-      val updatedMarkdown = TaskListToggleUtils.toggleAtIndex(currentMarkdown, taskIndex, newChecked)
+      val updatedMarkdown = TaskListToggleUtils.toggleAtOffset(currentMarkdown, taskMarkOffset, newChecked)
       view.setMarkdownContent(updatedMarkdown)
 
-      emitTaskListItemPress(view, taskIndex, newChecked, itemText)
+      emitTaskListItemPress(view, taskIndex, newChecked, itemText, taskMarkOffset)
     }
 
     view?.setMarkdownContent(markdown ?: "No markdown content")
