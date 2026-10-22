@@ -22,4 +22,10 @@ for file in "${FILES[@]}"; do
   curl -fSL --retry 3 "$url" -o "$dest"
 done
 
+ENTITY_REVISION="131d261d07b14ef6a2edeb30e09b411101fd9688"
+ENTITY_BASE_URL="https://raw.githubusercontent.com/software-mansion/enriched-markdown/${ENTITY_REVISION}/packages/core/cpp/enrmrkd"
+for file in enrmrkd-entity.c enrmrkd-entity.h; do
+  curl -fSL --retry 3 "${ENTITY_BASE_URL}/${file}" -o "${DEST_DIR}/${file}"
+done
+
 echo "Done. Files updated in ${DEST_DIR}"

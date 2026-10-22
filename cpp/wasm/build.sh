@@ -49,12 +49,20 @@ emcc \
   -c "$REPO_ROOT/cpp/md4c/md4c.c" \
   -o "$OUT_DIR/md4c.o"
 
+emcc \
+  -I "$REPO_ROOT/cpp/md4c" \
+  -ffile-prefix-map="$REPO_ROOT"=. \
+  -O2 \
+  -c "$REPO_ROOT/cpp/md4c/enrmrkd-entity.c" \
+  -o "$OUT_DIR/entity.o"
+
 # Compile C++ sources and link everything together
 emcc \
   "$SCRIPT_DIR/md4c_wasm.cpp" \
   "$SCRIPT_DIR/ASTSerializer.cpp" \
   "$REPO_ROOT/cpp/parser/MD4CParser.cpp" \
   "$OUT_DIR/md4c.o" \
+  "$OUT_DIR/entity.o" \
   -I "$REPO_ROOT/cpp" \
   -I "$SCRIPT_DIR" \
   -ffile-prefix-map="$REPO_ROOT"=. \
@@ -70,6 +78,6 @@ emcc \
   -s EXPORT_NAME='createMd4cModule' \
   -o "$OUT_DIR/md4c.js"
 
-rm "$OUT_DIR/md4c.o"
+rm "$OUT_DIR/md4c.o" "$OUT_DIR/entity.o"
 
 echo "Done → $OUT_DIR/md4c.js"
