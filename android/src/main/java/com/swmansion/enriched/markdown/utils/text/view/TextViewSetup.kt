@@ -2,6 +2,7 @@ package com.swmansion.enriched.markdown.utils.text.view
 
 import android.graphics.Color
 import android.os.Build
+import android.text.Layout
 import android.view.textclassifier.TextClassifier
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.ViewCompat
@@ -10,6 +11,16 @@ import com.swmansion.enriched.markdown.accessibility.AccessibleMarkdownTextView
 fun AccessibleMarkdownTextView.setupAsMarkdownTextView() {
   setBackgroundColor(Color.TRANSPARENT)
   includeFontPadding = false
+  // Pin line-breaking to match MeasurementStore's StaticLayout exactly.
+  // Otherwise the rendered TextView falls back to platform defaults
+  // (hyphenation enabled, plus BREAK_STRATEGY_HIGH_QUALITY even on API < 29
+  // where the measure path stays SIMPLE), so it wraps to more lines than the
+  // measured height reserved for the view — and since a TextView clips instead
+  // of scrolling, the tail of long/citation-heavy content is cut off on Android.
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    breakStrategy = Layout.BREAK_STRATEGY_HIGH_QUALITY
+    hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
+  }
   movementMethod = LinkLongPressMovementMethod.createInstance()
   setTextIsSelectable(true)
   customSelectionActionModeCallback = createSelectionActionModeCallback(this)
